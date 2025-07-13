@@ -1,81 +1,65 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Arbres autour de moi</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" referrerpolicy="no-referrer" />
+  <meta charset="UTF-8" />
+  <title>Arbres à Paris</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     html, body, #map {
-      margin: 0;
-      padding: 0;
       height: 100%;
+      margin: 0;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map').setView([48.8566, 2.3522], 15);
-
+    const map = L.map('map').setView([48.8566, 2.3522], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    const userIcon = L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/512/64/64113.png',
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
-      popupAnchor: [0, -32]
-    });
-
-    const treeIcon = L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/512/427/427735.png', // peut être remplacé par un picto d'arbre plus adapté
-      iconSize: [28, 28],
-      iconAnchor: [14, 28],
-      popupAnchor: [0, -28]
-    });
-
-    function loadTrees(lat, lon) {
-      const url = `https://opendata.paris.fr/api/records/1.0/search/?dataset=les-arbres&rows=500&geofilter.distance=${lat},${lon},1000`;
+    function afficherArbres(lat, lon) {
+      const radius = 500;
+      const url = `https://opendata.paris.fr/api/records/1.0/search/?dataset=les-arbres&rows=200&geofilter.distance=${lat},${lon},${radius}`;
       fetch(url)
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
           data.records.forEach(record => {
-            const fields = record.fields;
-            if (fields.geo_point_2d) {
-              const [lat, lon] = fields.geo_point_2d;
-              const essence = fields.essence_fr || fields.libellefrancais || "";
-              const genre = fields.genre || "";
-              const adresse = fields.adresse || "Adresse inconnue";
-              const plantation = fields.date_plantation || "non renseigné";
-              const popup = `<b>${essence}</b><br>${genre}<br>${adresse}<br>Planté en ${plantation}`;
-              L.marker([lat, lon], { icon: treeIcon }).addTo(map).bindPopup(popup);
+            const arbre = record.fields;
+            if (arbre.geo_point_2d) {
+              const [alat, alon] = arbre.geo_point_2d;
+              L.marker([alat, alon]).addTo(map)
+                .bindPopup(`<b>${arbre.libellefrancais || "Arbre inconnu"}</b>`);
             }
           });
+        })
+        .catch(err => {
+          console.error("Erreur chargement arbres :", err);
+          alert("Impossible de charger les arbres autour de vous.");
         });
     }
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
-          L.marker([lat, lon], { icon: userIcon }).addTo(map)
-            .bindPopup("Vous êtes ici").openPopup();
-          map.setView([lat, lon], 17);
-          loadTrees(lat, lon);
-        },
-        (error) => {
-          console.warn("Erreur de géolocalisation :", error.message);
-        },
-        { enableHighAccuracy: true }
-      );
-    } else {
-      alert("Géolocalisation non supportée.");
-    }
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        L.marker([lat, lon]).addTo(map).bindPopup("Vous êtes ici").openPopup();
+        map.setView([lat, lon], 17);
+        afficherArbres(lat, lon);
+      },
+      function(error) {
+        alert("Erreur de géolocalisation : " + error.message);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
   </script>
 </body>
 </html>
