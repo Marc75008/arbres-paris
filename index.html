@@ -32,11 +32,13 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" referrerpolicy="no-referrer"></script>
   <script>
     const map = L.map('map', {
-      maxZoom: 21
+      maxZoom: 20,
+      minZoom: 3
     }).setView([48.8566, 2.3522], 16);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 20
     }).addTo(map);
 
     const userIcon = L.icon({
@@ -47,7 +49,7 @@
     });
 
     const treeIcon = L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/512/427/427735.png',
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/766/766494.png',
       iconSize: [28, 28],
       iconAnchor: [14, 28],
       popupAnchor: [0, -28]
@@ -55,7 +57,7 @@
 
     let userMarker;
     function loadTrees(lat, lon) {
-      const url = `https://opendata.paris.fr/api/records/1.0/search/?dataset=les-arbres&rows=1000&geofilter.distance=${lat},${lon},2000`;
+      const url = `https://opendata.paris.fr/api/records/1.0/search/?dataset=les-arbres&rows=1000&geofilter.distance=${lat},${lon},3000`;
       fetch(url)
         .then(response => response.json())
         .then(data => {
