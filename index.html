@@ -18,7 +18,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" referrerpolicy="no-referrer"></script>
   <script>
-    const map = L.map('map').setView([48.8566, 2.3522], 13);
+    const map = L.map('map').setView([48.8566, 2.3522], 15);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
@@ -32,14 +32,14 @@
     });
 
     const treeIcon = L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/512/427/427735.png',
-      iconSize: [24, 24],
-      iconAnchor: [12, 24],
-      popupAnchor: [0, -24]
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/427/427735.png', // peut être remplacé par un picto d'arbre plus adapté
+      iconSize: [28, 28],
+      iconAnchor: [14, 28],
+      popupAnchor: [0, -28]
     });
 
     function loadTrees(lat, lon) {
-      const url = `https://opendata.paris.fr/api/records/1.0/search/?dataset=les-arbres&rows=100&geofilter.distance=${lat},${lon},500`;
+      const url = `https://opendata.paris.fr/api/records/1.0/search/?dataset=les-arbres&rows=500&geofilter.distance=${lat},${lon},1000`;
       fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -47,10 +47,11 @@
             const fields = record.fields;
             if (fields.geo_point_2d) {
               const [lat, lon] = fields.geo_point_2d;
-              const popup = `<b>${fields.essence_fr || "Essence inconnue"}</b><br>
-                             ${fields.genre || ""}<br>
-                             ${fields.adresse || "Adresse inconnue"}<br>
-                             Planté en ${fields.date_plantation || "non renseigné"}`;
+              const essence = fields.essence_fr || fields.libellefrancais || "";
+              const genre = fields.genre || "";
+              const adresse = fields.adresse || "Adresse inconnue";
+              const plantation = fields.date_plantation || "non renseigné";
+              const popup = `<b>${essence}</b><br>${genre}<br>${adresse}<br>Planté en ${plantation}`;
               L.marker([lat, lon], { icon: treeIcon }).addTo(map).bindPopup(popup);
             }
           });
