@@ -11,71 +11,110 @@
       padding: 0;
       height: 100%;
     }
+    .locate-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: white;
+      border: 2px solid #ccc;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-family: sans-serif;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
+  <button class="locate-btn" onclick="recenter()">📍 Me localiser</button>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" referrerpolicy="no-referrer"></script>
   <script>
-    const map = L.map('map').setView([48.8566, 2.3522], 15);
+    const map = L.map('map', {
+      maxZoom: 21
+    }).setView([48.8566, 2.3522], 16);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
     const userIcon = L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/512/64/64113.png',
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149060.png',
       iconSize: [32, 32],
       iconAnchor: [16, 32],
       popupAnchor: [0, -32]
     });
 
     const treeIcon = L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/512/427/427735.png', // peut être remplacé par un picto d'arbre plus adapté
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/427/427735.png',
       iconSize: [28, 28],
       iconAnchor: [14, 28],
       popupAnchor: [0, -28]
     });
 
+    let userMarker;
     function loadTrees(lat, lon) {
-      const url = `https://opendata.paris.fr/api/records/1.0/search/?dataset=les-arbres&rows=500&geofilter.distance=${lat},${lon},1000`;
+      const url = `https://opendata.paris.fr/api/records/1.0/search/?dataset=les-arbres&rows=1000&geofilter.distance=${lat},${lon},2000`;
       fetch(url)
         .then(response => response.json())
         .then(data => {
           data.records.forEach(record => {
             const fields = record.fields;
             if (fields.geo_point_2d) {
-              const [lat, lon] = fields.geo_point_2d;
+              const [alat, alon] = fields.geo_point_2d;
               const essence = fields.essence_fr || fields.libellefrancais || "";
               const genre = fields.genre || "";
               const adresse = fields.adresse || "Adresse inconnue";
               const plantation = fields.date_plantation || "non renseigné";
               const popup = `<b>${essence}</b><br>${genre}<br>${adresse}<br>Planté en ${plantation}`;
-              L.marker([lat, lon], { icon: treeIcon }).addTo(map).bindPopup(popup);
+              L.marker([alat, alon], { icon: treeIcon }).addTo(map).bindPopup(popup);
             }
           });
         });
     }
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
-          L.marker([lat, lon], { icon: userIcon }).addTo(map)
-            .bindPopup("Vous êtes ici").openPopup();
-          map.setView([lat, lon], 17);
-          loadTrees(lat, lon);
-        },
-        (error) => {
-          console.warn("Erreur de géolocalisation :", error.message);
-        },
-        { enableHighAccuracy: true }
-      );
-    } else {
-      alert("Géolocalisation non supportée.");
+    function updateUserPosition(lat, lon) {
+      if (userMarker) {
+        userMarker.setLatLng([lat, lon]);
+      } else {
+        userMarker = L.marker([lat, lon], { icon: userIcon }).addTo(map)
+          .bindPopup("Vous êtes ici").openPopup();
+      }
     }
+
+    function recenter() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            map.setView([lat, lon], 18);
+            updateUserPosition(lat, lon);
+          },
+          (error) => {
+            alert("Erreur de géolocalisation : " + error.message);
+          },
+          { enableHighAccuracy: true }
+        );
+      } else {
+        alert("Géolocalisation non supportée.");
+      }
+    }
+
+    // Initial geolocation
+    recenter();
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        loadTrees(lat, lon);
+      },
+      (error) => {
+        console.warn("Erreur de géolocalisation :", error.message);
+      },
+      { enableHighAccuracy: true }
+    );
   </script>
 </body>
 </html>
