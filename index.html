@@ -2,21 +2,32 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <title>Carte arbres Paris</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Carte arbres à Paris</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     html, body, #map {
-      margin: 0;
-      padding: 0;
       height: 100%;
+      margin: 0;
+    }
+    #locate-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #aaa;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
+  <button id="locate-btn">📍 Me localiser</button>
   <div id="map"></div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const map = L.map('map').setView([48.8566, 2.3522], 13);
 
@@ -24,23 +35,24 @@
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Géolocalisation
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
-          L.marker([lat, lon]).addTo(map)
-            .bindPopup("Vous êtes ici").openPopup();
-          map.setView([lat, lon], 17);
-        },
-        (error) => {
-          console.warn("Erreur de géolocalisation : ", error.message);
-        }
-      );
-    } else {
-      alert("Géolocalisation non supportée.");
-    }
+    document.getElementById('locate-btn').addEventListener('click', () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            L.marker([lat, lon]).addTo(map)
+              .bindPopup("Vous êtes ici").openPopup();
+            map.setView([lat, lon], 17);
+          },
+          (err) => {
+            alert("Erreur de géolocalisation : " + err.message);
+          }
+        );
+      } else {
+        alert("La géolocalisation n’est pas supportée.");
+      }
+    });
   </script>
 </body>
 </html>
