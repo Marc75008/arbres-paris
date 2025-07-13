@@ -1,37 +1,27 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Carte des arbres à Paris</title>
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha512-pqqHwykP1Gv0fJGBM2f7K1KkFPV+vdr+7blT+2ujkNBiUeMHRrGe2Xu+5r+PjEQZQOjOzh4jYXmRjL1LgmzKZw=="
-    crossorigin=""
-  />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carte arbres à Paris</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" referrerpolicy="no-referrer" />
   <style>
-    html, body {
-      height: 100%;
+    html, body, #map {
       margin: 0;
-    }
-    #map {
+      padding: 0;
       height: 100%;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha512-rlTS3U8N0mjbsRWRMnGVxvzpR1DEJH+7JscMgqJZ5bS4TyINZr+LIfmXFY6VctA3gXHepUw8l3zx6iv1/65Rpw=="
-    crossorigin=""
-  ></script>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" referrerpolicy="no-referrer"></script>
   <script>
-    const map = L.map('map').setView([48.8566, 2.3522], 13); // Paris centre
+    const map = L.map('map').setView([48.8566, 2.3522], 13);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
     // Géolocalisation
@@ -40,15 +30,16 @@
         (position) => {
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
-          L.marker([lat, lon]).addTo(map).bindPopup("Vous êtes ici").openPopup();
+          L.marker([lat, lon]).addTo(map)
+            .bindPopup("Vous êtes ici").openPopup();
           map.setView([lat, lon], 17);
         },
-        (err) => {
-          alert("Erreur de géolocalisation : " + err.message);
+        (error) => {
+          console.warn("Erreur de géolocalisation : ", error.message);
         }
       );
     } else {
-      alert("La géolocalisation n'est pas supportée par ce navigateur.");
+      alert("Géolocalisation non supportée.");
     }
   </script>
 </body>
