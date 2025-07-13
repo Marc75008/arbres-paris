@@ -1,37 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8"/>
+  <meta charset="utf-8" />
   <title>Arbres de Paris</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <style>#map{height:100vh;width:100%;}</style>
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; }
+    #map { height: 100vh; width: 100%; }
+  </style>
 </head>
 <body>
   <div id="map"></div>
   <script>
-    var map = L.map('map').setView([48.8566,2.3522],13);
-    L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',{maxZoom:20}).addTo(map);
-    function onLocationFound(e){
+    const map = L.map('map').setView([48.8566, 2.3522], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+      maxZoom: 20,
+      attribution: 'Données © OpenStreetMap France / Ville de Paris'
+    }).addTo(map);
+
+    // Géolocalisation de l'utilisateur
+    function onLocationFound(e) {
+      const radius = e.accuracy / 2;
       L.marker(e.latlng).addTo(map).bindPopup("Vous êtes ici").openPopup();
-      L.circle(e.latlng, e.accuracy/2).addTo(map);
-      var arbres = [
-        {lat:48.8371,lon:2.3923,nom:"Érable plane",esp:"Acer platanoides",adr:"Bd de Reuilly",rem:"Non"},
-        {lat:48.8516,lon:2.3625,nom:"Platane commun",esp:"Platanus x acerifolia",adr:"Quai Henri IV",rem:"Oui"},
-        {lat:48.8245,lon:2.3372,nom:"Tilleul à petites feuilles",esp:"Tilia cordata",adr:"Parc Montsouris",rem:"Non"}
+      L.circle(e.latlng, radius).addTo(map);
+
+      // 3 arbres test près de Paris
+      const arbres = [
+        { lat: 48.8371, lon: 2.3923, nom: "Érable plane", esp: "Acer platanoides", adr: "Bd de Reuilly", rem: "Non" },
+        { lat: 48.8516, lon: 2.3625, nom: "Platane commun", esp: "Platanus x acerifolia", adr: "Quai Henri IV", rem: "Oui" },
+        { lat: 48.8245, lon: 2.3372, nom: "Tilleul à petites feuilles", esp: "Tilia cordata", adr: "Parc Montsouris", rem: "Non" }
       ];
-      arbres.forEach(function(a){
-        L.marker([a.lat,a.lon]).addTo(map)
-          .bindPopup("<b>"+a.nom+"</b><br>"+a.esp+"<br><i>"+a.adr+"</i><br>Remarquable : "+a.rem);
+
+      arbres.forEach(a => {
+        L.marker([a.lat, a.lon]).addTo(map)
+          .bindPopup(`<b>${a.nom}</b><br>${a.esp}<br><i>${a.adr}</i><br>Remarquable : ${a.rem}`);
       });
     }
-    function onLocationError(e){
-      alert("Géoloc. impossible : "+e.message);
+
+    function onLocationError(e) {
+      alert("Géolocalisation impossible : " + e.message);
     }
-    map.on('locationfound',onLocationFound);
-    map.on('locationerror',onLocationError);
-    map.locate({setView:true,maxZoom:16});
+
+    map.on('locationfound', onLocationFound);
+    map.on('locationerror', onLocationError);
+    map.locate({ setView: true, maxZoom: 16 });
   </script>
 </body>
 </html>
