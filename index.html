@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
   <title>Arbres autour de moi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" referrerpolicy="no-referrer" />
   <style>
     html, body, #map {
@@ -49,13 +49,45 @@
     });
 
     const treeIcon = L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/512/3208/3208755.png',
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/766/766083.png', // feuille verte
+      iconSize: [28, 28],
+      iconAnchor: [14, 28],
+      popupAnchor: [0, -28]
+    });
+
+    const remarkableIcon = L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/1828/1828884.png', // étoile verte
       iconSize: [28, 28],
       iconAnchor: [14, 28],
       popupAnchor: [0, -28]
     });
 
     let userMarker;
+
+    function formatPopup(fields) {
+      const nom = fields.libellefrancais || "Espèce inconnue";
+      const variete = fields.varieteoucultivar || "";
+      const genre = fields.genre || "";
+      const stade = fields.stadedeveloppement || "";
+      const type = fields.typeemplacement || "";
+      const circ = fields.circonferenceencm ? `${fields.circonferenceencm} cm` : "";
+      const hauteur = fields.hauteurenm ? `${fields.hauteurenm} m` : "";
+      const adresse = fields.adresse || "";
+      const remarquable = fields.remarquable === "oui" ? "✅ Oui" : "Non";
+
+      return `
+        <b>${nom}</b><br>
+        ${variete ? `Espèce : ${variete}<br>` : ""}
+        ${genre ? `Genre : ${genre}<br>` : ""}
+        ${stade ? `Stade : ${stade}<br>` : ""}
+        ${type ? `Type : ${type}<br>` : ""}
+        ${circ ? `Circonférence : ${circ}<br>` : ""}
+        ${hauteur ? `Hauteur : ${hauteur}<br>` : ""}
+        ${adresse ? `Adresse : ${adresse}<br>` : ""}
+        Remarquable : ${remarquable}
+      `;
+    }
+
     function loadTrees(lat, lon) {
       const url = `https://opendata.paris.fr/api/records/1.0/search/?dataset=les-arbres&rows=1000&geofilter.distance=${lat},${lon},3000`;
       fetch(url)
@@ -65,12 +97,9 @@
             const fields = record.fields;
             if (fields.geo_point_2d) {
               const [alat, alon] = fields.geo_point_2d;
-              const essence = fields.essence_fr || fields.libellefrancais || "";
-              const genre = fields.genre || "";
-              const adresse = fields.adresse || "Adresse inconnue";
-              const plantation = fields.date_plantation || "non renseigné";
-              const popup = `<b>${essence}</b><br>${genre}<br>${adresse}<br>Planté en ${plantation}`;
-              L.marker([alat, alon], { icon: treeIcon }).addTo(map).bindPopup(popup);
+              const icon = fields.remarquable === "oui" ? remarkableIcon : treeIcon;
+              L.marker([alat, alon], { icon }).addTo(map)
+                .bindPopup(formatPopup(fields));
             }
           });
         });
